@@ -21,6 +21,7 @@ type TradierData struct {
 
 type TradierParser struct {
 	Client *http.Client
+	Token  string
 }
 
 func (parser *TradierParser) Fetch(url string) ([]byte, error) {
@@ -28,7 +29,7 @@ func (parser *TradierParser) Fetch(url string) ([]byte, error) {
 		parser.Client = &http.Client{}
 	}
 	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer 8RroaVdaoWDGxthGzs0G6KJFgUUK")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", parser.Token))
 	req.Header.Add("Accept", "application/json")
 	resp, err := parser.Client.Do(req)
 	if err != nil {

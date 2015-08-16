@@ -18,7 +18,7 @@ func main() {
 	}
 	var parser parsers.Parser
 	if config.ParserType == "Tradier" {
-		parser = &parsers.TradierParser{}
+		parser = &parsers.TradierParser{Token: config.ParserToken}
 	} else {
 		parser = &parsers.GoogleParser{}
 	}
