@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -34,6 +35,10 @@ func (parser *TradierParser) Fetch(url string) ([]byte, error) {
 	resp, err := parser.Client.Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("the call to the API failed with status code %d", resp.StatusCode))
 	}
 
 	defer resp.Body.Close()
