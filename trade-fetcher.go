@@ -34,7 +34,10 @@ func main() {
 
 	fmt.Println(database)
 	for _, symbol := range database.Symbols {
-		ticks, _ := parser.Read(symbol.Symbol, symbol.ID)
+		ticks, err := parser.Read(symbol.Symbol, symbol.ID)
+		if err != nil {
+			log.Println(err)
+		}
 		for _, tick := range ticks {
 			if err := database.InsertTick(tick); err != nil {
 				log.Println(err)
