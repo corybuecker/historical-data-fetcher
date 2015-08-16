@@ -12,7 +12,7 @@ func TestMissingFile(t *testing.T) {
 }
 func TestInvalidFile(t *testing.T) {
 	configuration := Configuration{}
-	err := configuration.Load("../_test/invalid_config.json")
+	err := configuration.Load("../__test/invalid_config.json")
 
 	if err == nil {
 		t.Fatalf("should have failed to parse bad file")
@@ -21,7 +21,7 @@ func TestInvalidFile(t *testing.T) {
 
 func TestValidFile(t *testing.T) {
 	configuration := Configuration{}
-	err := configuration.Load("../_test/valid_config.json")
+	err := configuration.Load("../__test/valid_config.json")
 
 	if err != nil {
 		t.Fatalf("should have parsed valid file")
