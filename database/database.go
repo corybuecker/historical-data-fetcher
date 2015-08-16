@@ -2,14 +2,13 @@ package database
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/corybuecker/trade-fetcher/parsers"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // blank import for postgresql driver
 )
 
 type Symbol struct {
-	Id     string
+	ID     string
 	Symbol string
 }
 type Database struct {
@@ -18,29 +17,30 @@ type Database struct {
 }
 
 func (database *Database) Connect(dataSourceName string) error {
-	var err error
-	database.DB, err = sql.Open("postgres", dataSourceName)
-	if err != nil {
+	// Note that the error returned here isn't used. The Ping call below is used to confirm the connection.
+	database.DB, _ = sql.Open("postgres", dataSourceName)
+	if err := database.DB.Ping(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (database *Database) FetchSymbols() error {
-	rows, err := database.DB.Query("SELECT id, symbol FROM symbols")
-	if err != nil {
-		log.Fatal(err)
+	var rows *sql.Rows
+	var err error
+	if rows, err = database.DB.Query("select id, symbol from symbols"); err != nil {
+		return err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var id, symbol string
-		if err := rows.Scan(&id, &symbol); err != nil {
-			log.Fatal(err)
+		if err = rows.Scan(&id, &symbol); err != nil {
+			return err
 		}
-		database.Symbols = append(database.Symbols, Symbol{Id: id, Symbol: symbol})
+		database.Symbols = append(database.Symbols, Symbol{ID: id, Symbol: symbol})
 	}
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
+	if err = rows.Err(); err != nil {
+		return err
 	}
 	return nil
 }

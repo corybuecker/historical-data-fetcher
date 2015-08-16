@@ -22,7 +22,11 @@ func main() {
 		parser = &parsers.GoogleParser{}
 	}
 
-	if err := database.Connect(fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", config.DatabaseHost, config.DatabaseUser, config.DatabasePassword, config.DatabaseName)); err != nil {
+	if err := database.Connect(fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.DatabaseHost,
+		config.DatabaseUser,
+		config.DatabasePassword,
+		config.DatabaseName)); err != nil {
 		log.Fatal(err)
 	}
 
@@ -30,7 +34,7 @@ func main() {
 
 	fmt.Println(database)
 	for _, symbol := range database.Symbols {
-		ticks, _ := parser.Read(symbol.Symbol, symbol.Id)
+		ticks, _ := parser.Read(symbol.Symbol, symbol.ID)
 		for _, tick := range ticks {
 			if err := database.InsertTick(tick); err != nil {
 				log.Println(err)
