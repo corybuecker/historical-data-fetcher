@@ -1,0 +1,10 @@
+machine:
+  services:
+    - docker
+
+test:
+  post:
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -v --ldflags '-extldflags -static -w -s' -installsuffix nocgo .
+    - docker build --no-cache -t corybuecker/trade-fetcher .
+    - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASSWORD
+    - docker push corybuecker/trade-fetcher

@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -9,9 +10,11 @@ import (
 )
 
 var testDB *sql.DB
+var database Database
 
 func init() {
 	testDB, _ = sql.Open("testdb", "")
+	database = Database{DB: testDB}
 }
 
 func TestInvalidConnection(t *testing.T) {
@@ -31,12 +34,19 @@ func TestValidConnection(t *testing.T) {
 }
 
 func TestFetchSymbols(t *testing.T) {
-	database := Database{DB: testDB}
-
 	sql := "select id, symbol from symbols"
 	testdb.StubQuery(sql, testdb.RowsFromCSVString([]string{"id", "symbol"}, "1,QQQ"))
 
 	if err := database.FetchSymbols(); err != nil {
 		t.Fatalf("should not have failed to fetch symbols")
+	}
+}
+
+func TestFetchSymbolsError(t *testing.T) {
+	sql := "select id, symbol from symbols"
+	testdb.StubQueryError(sql, errors.New("test"))
+
+	if err := database.FetchSymbols(); err == nil {
+		t.Fatalf("should have failed to fetch symbols")
 	}
 }

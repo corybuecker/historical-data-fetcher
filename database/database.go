@@ -34,9 +34,7 @@ func (database *Database) FetchSymbols() error {
 	defer rows.Close()
 	for rows.Next() {
 		var id, symbol string
-		if err = rows.Scan(&id, &symbol); err != nil {
-			return err
-		}
+		rows.Scan(&id, &symbol)
 		database.Symbols = append(database.Symbols, Symbol{ID: id, Symbol: symbol})
 	}
 	if err = rows.Err(); err != nil {
