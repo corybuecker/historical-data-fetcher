@@ -2,7 +2,6 @@ package parsers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -25,7 +24,7 @@ type TradierParser struct {
 	Token  string
 }
 
-func (parser *TradierParser) Fetch(url string) ([]byte, error) {
+func (parser *TradierParser) fetch(url string) ([]byte, error) {
 	if parser.Client == nil {
 		parser.Client = &http.Client{}
 	}
@@ -38,7 +37,7 @@ func (parser *TradierParser) Fetch(url string) ([]byte, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("the call to the API failed with status code %d", resp.StatusCode))
+		return nil, fmt.Errorf("the call to the API failed with status code %d", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()
@@ -52,7 +51,7 @@ func (parser *TradierParser) Fetch(url string) ([]byte, error) {
 func (parser *TradierParser) Read(symbol string, symbolID string) ([]Tick, error) {
 	var test []Tick
 	temp := TradierData{}
-	body, err := parser.Fetch(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/timesales?symbol=%s&interval=1min", symbol))
+	body, err := parser.fetch(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/timesales?symbol=%s&interval=1min", symbol))
 	if err != nil {
 		return nil, err
 	}

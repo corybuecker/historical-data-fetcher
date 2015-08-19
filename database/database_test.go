@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/corybuecker/trade-fetcher/parsers"
 	"github.com/erikstmartin/go-testdb"
 )
 
@@ -48,5 +49,24 @@ func TestFetchSymbolsError(t *testing.T) {
 
 	if err := database.FetchSymbols(); err == nil {
 		t.Fatalf("should have failed to fetch symbols")
+	}
+}
+
+func TestInsertTick(t *testing.T) {
+	testdb.StubExec("insert into trades (symbol_id, time, price, volume) values ($1, $2, $3, $4)", testdb.NewResult(0, nil, 1, nil))
+	tick := parsers.Tick{}
+	err := database.InsertTick(tick)
+
+	if err != nil {
+		t.Fatalf("should not have errored")
+	}
+}
+
+func TestInsertTickError(t *testing.T) {
+	testdb.StubExecError("insert into trades (symbol_id, time, price, volume) values ($1, $2, $3, $4)", errors.New("error"))
+	tick := parsers.Tick{}
+	err := database.InsertTick(tick)
+	if err == nil {
+		t.Fatalf("should not have errored")
 	}
 }

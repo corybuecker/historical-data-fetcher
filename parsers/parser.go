@@ -11,4 +11,5 @@ type Tick struct {
 
 type Parser interface {
 	Read(string, string) ([]Tick, error)
+	fetch(url string) ([]byte, error)
 }
