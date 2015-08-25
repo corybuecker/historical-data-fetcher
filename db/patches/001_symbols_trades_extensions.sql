@@ -24,8 +24,4 @@ create table trades (
 alter table trades add primary key (symbol_id, time);
 alter table trades add foreign key (symbol_id) references symbols (id) on delete cascade;
 
-insert into symbols (symbol) values ('QQQ');
-insert into symbols (symbol) values ('AAPL');
-insert into symbols (symbol) values ('NFLX');
-
 commit;
