@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/corybuecker/trade-fetcher/configuration"
 	"github.com/corybuecker/trade-fetcher/database"
@@ -31,21 +30,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for {
-		database.FetchSymbols()
-		fmt.Println(database)
+	database.FetchSymbols()
+	fmt.Println(database)
 
-		for _, symbol := range database.Symbols {
-			ticks, err := parser.Read(symbol.Symbol, symbol.ID)
-			if err != nil {
+	for _, symbol := range database.Symbols {
+		ticks, err := parser.Read(symbol.Symbol, symbol.ID)
+		if err != nil {
+			log.Println(err)
+		}
+		for _, tick := range ticks {
+			if err := database.InsertTick(tick); err != nil {
 				log.Println(err)
 			}
-			for _, tick := range ticks {
-				if err := database.InsertTick(tick); err != nil {
-					log.Println(err)
-				}
-			}
 		}
-		time.Sleep(time.Hour * 24)
 	}
 }
