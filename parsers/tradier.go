@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -20,10 +21,34 @@ type TradierData struct {
 }
 
 type TradierParser struct {
-	Client *http.Client
-	Token  string
+	Client    *http.Client
+	Token     string
+	RateLimit time.Duration
 }
 
+func (parser *TradierParser) obeyRateLimits(headers http.Header) error {
+	var rateLimitAvailable int64
+	var rateLimitExpires time.Duration
+	var err error
+	if ratelimitAvailableHeader, ok := headers["X-Ratelimit-Available"]; ok {
+		var ratelimitAvailableTemp int64
+		if ratelimitAvailableTemp, err = strconv.ParseInt(ratelimitAvailableHeader[0], 10, 8); err != nil {
+			return err
+		}
+		rateLimitAvailable = ratelimitAvailableTemp
+	}
+
+	if ratelimitExpiresHeader, ok := headers["X-Ratelimit-Expiry"]; ok {
+		var ratelimitExpiresTemp int64
+		if ratelimitExpiresTemp, err = strconv.ParseInt(ratelimitExpiresHeader[0], 10, 64); err != nil {
+			return err
+		}
+		rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(time.Now())
+	}
+	parser.RateLimit = time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100
+	time.Sleep(parser.RateLimit)
+	return nil
+}
 func (parser *TradierParser) fetch(url string) ([]byte, error) {
 	if parser.Client == nil {
 		parser.Client = &http.Client{}
@@ -42,6 +67,7 @@ func (parser *TradierParser) fetch(url string) ([]byte, error) {
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +78,7 @@ func (parser *TradierParser) Read(symbol string, symbolID string) ([]Tick, error
 	var test []Tick
 	temp := TradierData{}
 	body, err := parser.fetch(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/timesales?symbol=%s&interval=1min", symbol))
+
 	if err != nil {
 		return nil, err
 	}
