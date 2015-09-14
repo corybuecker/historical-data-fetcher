@@ -66,6 +66,8 @@ func (parser *TradierParser) fetch(url string) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
+	parser.obeyRateLimits(resp.Header)
+
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
