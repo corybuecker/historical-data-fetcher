@@ -12,8 +12,10 @@ var server *httptest.Server
 
 func init() {
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Ratelimit-Available", "59")
+		w.Header().Set("X-Ratelimit-Expiry", string(time.Now().Add(time.Second*60).Unix()*1000))
+		w.WriteHeader(200)
 		fmt.Fprint(w, "{'test': true}")
 	}))
 }
