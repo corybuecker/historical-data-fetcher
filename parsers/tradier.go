@@ -20,6 +20,8 @@ type TradierData struct {
 	}
 }
 
+type clock struct{}
+
 type TradierParser struct {
 	Client    *http.Client
 	Token     string
@@ -45,8 +47,11 @@ func (parser *TradierParser) obeyRateLimits(headers http.Header) error {
 		}
 		rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(time.Now())
 	}
-	parser.RateLimit = time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100
-	time.Sleep(parser.RateLimit)
+
+	if rateLimitAvailable > 0 {
+		parser.RateLimit = time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100
+		time.Sleep(parser.RateLimit)
+	}
 	return nil
 }
 func (parser *TradierParser) fetch(url string) ([]byte, error) {
@@ -66,7 +71,10 @@ func (parser *TradierParser) fetch(url string) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
-	parser.obeyRateLimits(resp.Header)
+
+	if err := parser.obeyRateLimits(resp.Header); err != nil {
+		return nil, err
+	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
