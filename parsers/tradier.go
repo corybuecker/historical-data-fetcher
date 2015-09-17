@@ -30,9 +30,9 @@ func (parser *TradierParser) obeyRateLimits(headers http.Header) error {
 	var rateLimitAvailable int64
 	var rateLimitExpires time.Duration
 	var err error
-	if ratelimitAvailableHeader, ok := headers["X-Ratelimit-Available"]; ok {
+	if headers.Get("X-Ratelimit-Available") != "" {
 		var ratelimitAvailableTemp int64
-		if ratelimitAvailableTemp, err = strconv.ParseInt(ratelimitAvailableHeader[0], 10, 8); err != nil {
+		if ratelimitAvailableTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Available"), 10, 8); err != nil {
 			return err
 		}
 		rateLimitAvailable = ratelimitAvailableTemp
