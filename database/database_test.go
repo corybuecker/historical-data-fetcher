@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/corybuecker/trade-fetcher/parsers"
@@ -23,14 +22,6 @@ func TestInvalidConnection(t *testing.T) {
 	err := database.Connect("database")
 	if err == nil {
 		t.Fatalf("should have failed the database connection")
-	}
-}
-
-func TestValidConnection(t *testing.T) {
-	database := Database{}
-	err := database.Connect(fmt.Sprintf("host=localhost user=ubuntu dbname=circle_test sslmode=disable"))
-	if err != nil {
-		t.Fatalf("should have successfully connected to the database")
 	}
 }
 
