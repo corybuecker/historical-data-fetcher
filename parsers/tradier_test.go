@@ -2,7 +2,6 @@ package parsers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -24,8 +23,6 @@ func buildServer(headers http.Header) {
 }
 
 func init() {
-	log.Println("test")
-
 	headers := http.Header{}
 	headers.Add("X-Ratelimit-Available", "59")
 	headers.Add("X-Ratelimit-Expiry", strconv.FormatInt(time.Now().Add(time.Second*1).Unix()*1000, 10))
