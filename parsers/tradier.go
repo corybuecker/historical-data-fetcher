@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
+
+	"github.com/corybuecker/trade-fetcher/ratelimiters"
 )
 
 type TradierDatum struct {
@@ -23,40 +24,18 @@ type TradierData struct {
 type clock struct{}
 
 type TradierParser struct {
-	Client    *http.Client
-	Token     string
-	RateLimit time.Duration
+	Client      *http.Client
+	Token       string
+	RateLimiter *ratelimiters.TradierRateLimiter
 }
 
-func (parser *TradierParser) obeyRateLimits(headers http.Header) error {
-	var rateLimitAvailable int64
-	var rateLimitExpires time.Duration
-	var err error
-	if headers.Get("X-Ratelimit-Available") != "" {
-		var ratelimitAvailableTemp int64
-		if ratelimitAvailableTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Available"), 10, 8); err != nil {
-			return err
-		}
-		rateLimitAvailable = ratelimitAvailableTemp
-	}
-
-	if ratelimitExpiresHeader, ok := headers["X-Ratelimit-Expiry"]; ok {
-		var ratelimitExpiresTemp int64
-		if ratelimitExpiresTemp, err = strconv.ParseInt(ratelimitExpiresHeader[0], 10, 64); err != nil {
-			return err
-		}
-		rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(time.Now())
-	}
-
-	if rateLimitAvailable > 0 {
-		parser.RateLimit = time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100
-		time.Sleep(parser.RateLimit)
-	}
-	return nil
-}
 func (parser *TradierParser) fetch(url string) ([]byte, error) {
 	if parser.Client == nil {
 		parser.Client = &http.Client{}
+	}
+
+	if parser.RateLimiter == nil {
+		parser.RateLimiter = &ratelimiters.TradierRateLimiter{}
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", parser.Token))
@@ -72,7 +51,7 @@ func (parser *TradierParser) fetch(url string) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	if err := parser.obeyRateLimits(resp.Header); err != nil {
+	if err := parser.RateLimiter.ObeyRateLimit(resp.Header); err != nil {
 		return nil, err
 	}
 

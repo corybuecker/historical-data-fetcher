@@ -60,15 +60,3 @@ func TestNonTwoHundred(t *testing.T) {
 		t.Fatalf("should have failed, %s", err.Error())
 	}
 }
-
-func TestRateLimitDivideZero(t *testing.T) {
-	headers := http.Header{}
-	headers.Add("X-Ratelimit-Available", "0")
-	headers.Add("X-Ratelimit-Expiry", strconv.FormatInt(time.Now().Add(time.Second*10).Unix()*1000, 10))
-	buildServer(headers)
-	parser := new(TradierParser)
-
-	if _, err := parser.fetch(server.URL); err != nil {
-		t.Fatalf("should not have failed, %s", err.Error())
-	}
-}
