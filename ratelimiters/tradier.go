@@ -1,6 +1,7 @@
 package ratelimiters
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -25,24 +26,23 @@ func (rateLimiter *TradierRateLimiter) ObeyRateLimit(headers http.Header) error 
 	var rateLimitAvailable int64
 	var rateLimitExpires time.Duration
 	var err error
-	if headers.Get("X-Ratelimit-Available") != "" {
-		var ratelimitAvailableTemp int64
-		if ratelimitAvailableTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Available"), 10, 8); err != nil {
-			return err
-		}
-		rateLimitAvailable = ratelimitAvailableTemp
-	}
+	var ratelimitAvailableTemp int64
 
-	if ratelimitExpiresHeader, ok := headers["X-Ratelimit-Expiry"]; ok {
-		var ratelimitExpiresTemp int64
-		if ratelimitExpiresTemp, err = strconv.ParseInt(ratelimitExpiresHeader[0], 10, 64); err != nil {
-			return err
-		}
-		rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(time.Now())
+	if ratelimitAvailableTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Available"), 10, 8); err != nil {
+		return err
 	}
+	rateLimitAvailable = ratelimitAvailableTemp
+
+	var ratelimitExpiresTemp int64
+	if ratelimitExpiresTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Expiry"), 10, 64); err != nil {
+		return err
+	}
+	rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(time.Now())
 
 	if rateLimitAvailable > 0 {
-		rateLimiter.Clock.Sleep(time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100)
+		sleepTime := time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100
+		log.Printf("sleeping for %s to respect rate limit", sleepTime.String())
+		rateLimiter.Clock.Sleep(sleepTime)
 	} else {
 		rateLimiter.Clock.Sleep(time.Minute)
 	}
