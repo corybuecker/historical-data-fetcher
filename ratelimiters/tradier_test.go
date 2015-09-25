@@ -14,6 +14,9 @@ type TestClock struct {
 func (clock *TestClock) Sleep(d time.Duration) {
 	clock.sleepDuration = d
 }
+func (clock *TestClock) Now() time.Time {
+	return time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+}
 
 var headers http.Header
 
@@ -28,6 +31,18 @@ func TestCreatedClock(t *testing.T) {
 	rateLimiter.ObeyRateLimit(headers)
 	if rateLimiter.Clock == nil {
 		t.Fatalf("should have created a clock")
+	}
+}
+
+func TestCorrectSleep(t *testing.T) {
+	headers.Set("X-Ratelimit-Available", "60")
+
+	rateLimiter := TradierRateLimiter{Clock: &TestClock{}}
+	headers.Set("X-Ratelimit-Expiry", strconv.FormatInt(rateLimiter.Clock.Now().Add(time.Second*60).Unix()*1000, 10))
+
+	rateLimiter.ObeyRateLimit(headers)
+	if rateLimiter.Clock.(*TestClock).sleepDuration != time.Second+time.Millisecond*100 {
+		t.Fatalf("expected around one second, got %s", rateLimiter.Clock.(*TestClock).sleepDuration)
 	}
 }
 

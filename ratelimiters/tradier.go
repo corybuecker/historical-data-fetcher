@@ -9,11 +9,13 @@ import (
 
 type ClockInterface interface {
 	Sleep(time.Duration)
+	Now() time.Time
 }
 
 type Clock struct{}
 
 func (clock *Clock) Sleep(d time.Duration) { time.Sleep(d) }
+func (clock *Clock) Now() time.Time        { return time.Now() }
 
 type TradierRateLimiter struct {
 	Clock ClockInterface
@@ -37,7 +39,7 @@ func (rateLimiter *TradierRateLimiter) ObeyRateLimit(headers http.Header) error 
 	if ratelimitExpiresTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Expiry"), 10, 64); err != nil {
 		return err
 	}
-	rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(time.Now())
+	rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(rateLimiter.Clock.Now())
 
 	if rateLimitAvailable > 0 {
 		sleepTime := time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100
