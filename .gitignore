@@ -23,5 +23,4 @@ _testmain.go
 *.test
 *.prof
 
-config.json
-db/misc_scripts
+vendor

@@ -1,0 +1,28 @@
+hash: 616053effbfbaed2d3207faadaee2ae1a573dbea123996abec2c08ea450f6a46
+updated: 2016-12-29T07:39:13.747855553-05:00
+imports:
+- name: github.com/aws/aws-sdk-go
+  version: 1e6377549087b490b693300bce2c5e286dc87740
+- name: github.com/corybuecker/jsonfetcher
+  version: b977255d1dd435c0afd57c65f9f05bcc014019a0
+- name: github.com/corybuecker/redisconfig
+  version: c21142b9522c378b3076573254bd16695777ad70
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: gopkg.in/bsm/ratelimit.v1
+  version: db14e161995a5177acef654cb0dd785e8ee8bc22
+- name: gopkg.in/redis.v5
+  version: b7bae3a78050e2e7ec2130a05cde296a9ff2e9c0
+  subpackages:
+  - internal
+  - internal/consistenthash
+  - internal/hashtag
+  - internal/pool
+  - internal/proto
+testImports:
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert

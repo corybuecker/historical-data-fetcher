@@ -1,47 +1,39 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
-	"github.com/corybuecker/trade-fetcher/configuration"
-	"github.com/corybuecker/trade-fetcher/database"
+	"github.com/corybuecker/redisconfig"
 	"github.com/corybuecker/trade-fetcher/parsers"
+	"github.com/corybuecker/trade-fetcher/symbols"
+	"github.com/davecgh/go-spew/spew"
+	redis "gopkg.in/redis.v5"
 )
 
+type Config struct {
+	TradierAPIKey string
+}
+
 func main() {
-	var config = new(configuration.Configuration)
-	var database = &database.Database{}
-	if err := config.Load("./config.json"); err != nil {
-		log.Fatal(err)
-	}
-	var parser parsers.Parser
-	if config.ParserType == "Tradier" {
-		parser = &parsers.TradierParser{Token: config.ParserToken}
-	} else {
-		parser = &parsers.GoogleParser{}
-	}
+	redis := redis.NewFailoverClient(&redis.FailoverOptions{
+		MasterName:    "master",
+		SentinelAddrs: []string{":26379"},
+	})
 
-	if err := database.Connect(fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-		config.DatabaseHost,
-		config.DatabaseUser,
-		config.DatabasePassword,
-		config.DatabaseName)); err != nil {
-		log.Fatal(err)
+	rConfig := redisconfig.Configuration{
+		Client: redis,
+		Key:    "trade_fetcher_configuration",
 	}
+	config := Config{}
+	err := rConfig.Get(&config)
+	log.Println(err)
+	log.Printf("%v", config)
+	symbolsFetcher := symbols.Fetcher{Redis: redis}
+	symbols, _ := symbolsFetcher.All()
+	tradeFetcher := parsers.TradierParser{Token: config.TradierAPIKey}
 
-	database.FetchSymbols()
-	fmt.Println(database)
+	for _, symbol := range symbols {
+		spew.Dump(tradeFetcher.Read(symbol))
 
-	for _, symbol := range database.Symbols {
-		ticks, err := parser.Read(symbol.Symbol, symbol.ID)
-		if err != nil {
-			log.Println(err)
-		}
-		for _, tick := range ticks {
-			if err := database.InsertTick(tick); err != nil {
-				log.Println(err)
-			}
-		}
 	}
 }

@@ -1,8 +1,0 @@
-{
-  parserType": "Tradier",
-  "parserToken": "Bearer Token",
-  "databaseName": "database",
-  "databaseUser": "postgres",
-  "databasePassword": "postgres",
-  "databaseHost": "host"
-}

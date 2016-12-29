@@ -2,7 +2,6 @@ package ratelimiters
 
 import (
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -21,22 +20,23 @@ type TradierRateLimiter struct {
 	Clock ClockInterface
 }
 
-func (rateLimiter *TradierRateLimiter) ObeyRateLimit(headers http.Header) error {
+func (rateLimiter *TradierRateLimiter) ObeyRateLimit(headers map[string]string) error {
 	if rateLimiter.Clock == nil {
 		rateLimiter.Clock = &Clock{}
 	}
+
 	var rateLimitAvailable int64
 	var rateLimitExpires time.Duration
 	var err error
 	var ratelimitAvailableTemp int64
 
-	if ratelimitAvailableTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Available"), 10, 8); err != nil {
+	if ratelimitAvailableTemp, err = strconv.ParseInt(headers["X-Ratelimit-Available"], 10, 8); err != nil {
 		return err
 	}
 	rateLimitAvailable = ratelimitAvailableTemp
 
 	var ratelimitExpiresTemp int64
-	if ratelimitExpiresTemp, err = strconv.ParseInt(headers.Get("X-Ratelimit-Expiry"), 10, 64); err != nil {
+	if ratelimitExpiresTemp, err = strconv.ParseInt(headers["X-Ratelimit-Expiry"], 10, 64); err != nil {
 		return err
 	}
 	rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(rateLimiter.Clock.Now())

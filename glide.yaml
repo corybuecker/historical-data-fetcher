@@ -1,0 +1,13 @@
+package: github.com/corybuecker/trade-fetcher
+import:
+- package: gopkg.in/redis.v5
+  version: ^5.1.3
+- package: gopkg.in/bsm/ratelimit.v1
+- package: github.com/corybuecker/redisconfig
+- package: github.com/aws/aws-sdk-go
+  version: ^1.6.8
+testImport:
+- package: github.com/stretchr/testify
+  version: ^1.1.4
+  subpackages:
+  - assert
