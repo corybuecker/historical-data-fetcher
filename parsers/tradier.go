@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/corybuecker/jsonfetcher"
-	"github.com/corybuecker/trade-fetcher/ratelimiters"
+	"github.com/corybuecker/historical-data-fetcher/ratelimiters"
 )
 
 type TradierData struct {
