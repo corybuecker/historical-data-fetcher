@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type Bucket struct {
@@ -34,8 +33,6 @@ func (bucket *Bucket) CreateSession(id, secret string) error {
 }
 
 func (bucket *Bucket) Store(key string, contents string) error {
-	spew.Dump(key)
-	spew.Dump(contents)
 	params := &s3.PutObjectInput{
 		Bucket: aws.String("thegreyjoy-historical-data"),
 		Key:    aws.String(key),

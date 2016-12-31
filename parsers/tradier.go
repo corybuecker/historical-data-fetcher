@@ -5,13 +5,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/corybuecker/historicaldata/ratelimiters"
 	"github.com/corybuecker/jsonfetcher"
-	"github.com/corybuecker/historical-data-fetcher/ratelimiters"
 )
 
 type TradierData struct {
 	History struct {
 		Day History
+	}
+}
+
+type TradierMultiData struct {
+	History struct {
+		Day []History
 	}
 }
 
@@ -29,30 +35,50 @@ func (td *TradierDate) UnmarshalJSON(b []byte) (err error) {
 type clock struct{}
 
 type TradierParser struct {
-	Token       string
-	RateLimiter *ratelimiters.TradierRateLimiter
+	rateLimiter *ratelimiters.TradierRateLimiter
+	headers     map[string]string
+	jsonFetcher *jsonfetcher.Jsonfetcher
 }
 
-func (parser *TradierParser) Read(symbol string) (History, error) {
-	if parser.RateLimiter == nil {
-		parser.RateLimiter = &ratelimiters.TradierRateLimiter{}
+func BuildTradierParser(token string) *TradierParser {
+	parser := &TradierParser{
+		rateLimiter: &ratelimiters.TradierRateLimiter{},
+		headers:     map[string]string{"Authorization": fmt.Sprintf("Bearer %s", token), "Accept": "application/json"},
+		jsonFetcher: &jsonfetcher.Jsonfetcher{},
 	}
-	var test History
-	temp := TradierData{}
-	jsonfetcher := jsonfetcher.Jsonfetcher{}
-	headers := map[string]string{"Authorization": fmt.Sprintf("Bearer %s", parser.Token), "Accept": "application/json"}
+	return parser
+}
 
-	err := jsonfetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol, yesterday(), yesterday()), headers, &temp)
+func (parser *TradierParser) FetchLastMonth(symbol string) ([]History, error) {
+	var test []History
+	temp := TradierMultiData{}
+
+	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol, threeDaysAgo(), yesterday()), parser.headers, &temp)
 
 	if err != nil {
 		return test, err
 	}
 
-	if err := parser.RateLimiter.ObeyRateLimit(jsonfetcher.LastResponseHeaders()); err != nil {
+	if err := parser.rateLimiter.ObeyRateLimit(parser.jsonFetcher.LastResponseHeaders()); err != nil {
 		return test, err
 	}
 
-	test = temp.History.Day
+	return temp.History.Day, nil
+}
 
-	return test, nil
+func (parser *TradierParser) FetchYesterday(symbol string) (History, error) {
+	var test History
+	temp := TradierData{}
+
+	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol, yesterday(), yesterday()), parser.headers, &temp)
+
+	if err != nil {
+		return test, err
+	}
+
+	if err := parser.rateLimiter.ObeyRateLimit(parser.jsonFetcher.LastResponseHeaders()); err != nil {
+		return test, err
+	}
+
+	return temp.History.Day, nil
 }

@@ -33,6 +33,7 @@ func (rateLimiter *TradierRateLimiter) ObeyRateLimit(headers map[string]string) 
 	if ratelimitAvailableTemp, err = strconv.ParseInt(headers["X-Ratelimit-Available"], 10, 8); err != nil {
 		return err
 	}
+
 	rateLimitAvailable = ratelimitAvailableTemp
 
 	var ratelimitExpiresTemp int64
@@ -48,5 +49,6 @@ func (rateLimiter *TradierRateLimiter) ObeyRateLimit(headers map[string]string) 
 	} else {
 		rateLimiter.Clock.Sleep(time.Minute)
 	}
+
 	return nil
 }

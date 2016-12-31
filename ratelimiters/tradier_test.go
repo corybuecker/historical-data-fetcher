@@ -1,7 +1,6 @@
 package ratelimiters
 
 import (
-	"net/http"
 	"strconv"
 	"testing"
 	"time"
@@ -18,12 +17,11 @@ func (clock *TestClock) Now() time.Time {
 	return time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 }
 
-var headers http.Header
+var headers = map[string]string{}
 
 func init() {
-	headers = http.Header{}
-	headers.Set("X-Ratelimit-Available", "60")
-	headers.Set("X-Ratelimit-Expiry", strconv.FormatInt(time.Now().Add(time.Second).Unix()*1000, 10))
+	headers["X-Ratelimit-Available"] = "60"
+	headers["X-Ratelimit-Expiry"] = strconv.FormatInt(time.Now().Add(time.Second).Unix()*1000, 10)
 }
 
 func TestCreatedClock(t *testing.T) {
@@ -35,10 +33,10 @@ func TestCreatedClock(t *testing.T) {
 }
 
 func TestCorrectSleep(t *testing.T) {
-	headers.Set("X-Ratelimit-Available", "60")
+	headers["X-Ratelimit-Available"] = "60"
 
 	rateLimiter := TradierRateLimiter{Clock: &TestClock{}}
-	headers.Set("X-Ratelimit-Expiry", strconv.FormatInt(rateLimiter.Clock.Now().Add(time.Second*60).Unix()*1000, 10))
+	headers["X-Ratelimit-Expiry"] = strconv.FormatInt(rateLimiter.Clock.Now().Add(time.Second*60).Unix()*1000, 10)
 
 	rateLimiter.ObeyRateLimit(headers)
 	if rateLimiter.Clock.(*TestClock).sleepDuration != time.Second+time.Millisecond*100 {
@@ -47,8 +45,8 @@ func TestCorrectSleep(t *testing.T) {
 }
 
 func TestExpiryHeaderParseIntError(t *testing.T) {
-	headers.Set("X-Ratelimit-Expiry", "integer")
-	headers.Set("X-Ratelimit-Available", "60")
+	headers["X-Ratelimit-Expiry"] = "integer"
+	headers["X-Ratelimit-Available"] = "60"
 
 	rateLimiter := TradierRateLimiter{Clock: &TestClock{}}
 	if err := rateLimiter.ObeyRateLimit(headers); err == nil {
@@ -57,8 +55,8 @@ func TestExpiryHeaderParseIntError(t *testing.T) {
 }
 
 func TestAvailableHeaderParseIntError(t *testing.T) {
-	headers.Set("X-Ratelimit-Expiry", "60")
-	headers.Set("X-Ratelimit-Available", "integer")
+	headers["X-Ratelimit-Expiry"] = "60"
+	headers["X-Ratelimit-Available"] = "integer"
 	rateLimiter := TradierRateLimiter{Clock: &TestClock{}}
 	if err := rateLimiter.ObeyRateLimit(headers); err == nil {
 		t.Fatalf("should have received error")
@@ -66,8 +64,8 @@ func TestAvailableHeaderParseIntError(t *testing.T) {
 }
 
 func TestRateLimitDivideZero(t *testing.T) {
-	headers.Set("X-Ratelimit-Available", "0")
-	headers.Set("X-Ratelimit-Expiry", strconv.FormatInt(time.Now().Add(time.Second*10).Unix()*1000, 10))
+	headers["X-Ratelimit-Available"] = "0"
+	headers["X-Ratelimit-Expiry"] = strconv.FormatInt(time.Now().Add(time.Second*10).Unix()*1000, 10)
 	rateLimiter := TradierRateLimiter{Clock: &TestClock{}}
 	rateLimiter.ObeyRateLimit(headers)
 	if rateLimiter.Clock.(*TestClock).sleepDuration != time.Minute {

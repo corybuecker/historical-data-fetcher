@@ -1,20 +1,50 @@
-hash: 616053effbfbaed2d3207faadaee2ae1a573dbea123996abec2c08ea450f6a46
-updated: 2016-12-29T07:39:13.747855553-05:00
+hash: af8681719558093eda3f104b1c160fd88eb39b64da56a2d3447e49a152a1e94b
+updated: 2016-12-31T14:17:35.583981333-06:00
 imports:
 - name: github.com/aws/aws-sdk-go
-  version: 1e6377549087b490b693300bce2c5e286dc87740
+  version: 36670f6ab1769ad77fa5f7e2c194398733503635
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - private/protocol
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/restxml
+  - private/protocol/xml/xmlutil
+  - private/waiter
+  - service/s3
+  - service/sts
 - name: github.com/corybuecker/jsonfetcher
   version: b977255d1dd435c0afd57c65f9f05bcc014019a0
 - name: github.com/corybuecker/redisconfig
   version: c21142b9522c378b3076573254bd16695777ad70
 - name: github.com/davecgh/go-spew
-  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  version: 346938d642f2ec3594ed81d874461961cd0faa76
   subpackages:
   - spew
+- name: github.com/go-ini/ini
+  version: 6f66b0e091edb3c7b380f7c4f0f884274d550b67
+- name: github.com/jmespath/go-jmespath
+  version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
 - name: gopkg.in/bsm/ratelimit.v1
   version: db14e161995a5177acef654cb0dd785e8ee8bc22
 - name: gopkg.in/redis.v5
-  version: b7bae3a78050e2e7ec2130a05cde296a9ff2e9c0
+  version: 8fcba2ea878201b70c5a63dd416141d4ddbc601a
   subpackages:
   - internal
   - internal/consistenthash
