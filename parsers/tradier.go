@@ -53,30 +53,11 @@ func (parser *TradierParser) FetchLastMonth(symbol string) ([]History, error) {
 	var test []History
 	temp := TradierMultiData{}
 
-	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol, threeDaysAgo(), yesterday()), parser.headers, &temp)
-
-	if err != nil {
-		return test, err
-	}
-
+	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol, fourteenDaysAgo(), yesterday()), parser.headers, &temp)
 	if err := parser.rateLimiter.ObeyRateLimit(parser.jsonFetcher.LastResponseHeaders()); err != nil {
 		return test, err
 	}
-
-	return temp.History.Day, nil
-}
-
-func (parser *TradierParser) FetchYesterday(symbol string) (History, error) {
-	var test History
-	temp := TradierData{}
-
-	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol, yesterday(), yesterday()), parser.headers, &temp)
-
 	if err != nil {
-		return test, err
-	}
-
-	if err := parser.rateLimiter.ObeyRateLimit(parser.jsonFetcher.LastResponseHeaders()); err != nil {
 		return test, err
 	}
 

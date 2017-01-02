@@ -14,22 +14,10 @@ type Bucket struct {
 	service *s3.S3
 }
 
-func (bucket *Bucket) CreateSession(id, secret string) error {
-	var err error
-	credentials := credentials.NewStaticCredentials(id, secret, "")
-
-	bucket.session, err = session.NewSession(&aws.Config{
-		Credentials: credentials,
-		Region:      aws.String("us-east-1"),
-	})
-
-	if err != nil {
-		return err
-	}
-
-	bucket.service = s3.New(bucket.session)
-
-	return nil
+func CreateBucket(id, secret string) *Bucket {
+	bucket := &Bucket{}
+	bucket.createSession(id, secret)
+	return bucket
 }
 
 func (bucket *Bucket) Store(key string, contents string) error {
@@ -44,6 +32,24 @@ func (bucket *Bucket) Store(key string, contents string) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (bucket *Bucket) createSession(id, secret string) error {
+	var err error
+	credentials := credentials.NewStaticCredentials(id, secret, "")
+
+	bucket.session, err = session.NewSession(&aws.Config{
+		Credentials: credentials,
+		Region:      aws.String("us-east-1"),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	bucket.service = s3.New(bucket.session)
 
 	return nil
 }

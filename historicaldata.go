@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/corybuecker/historicaldata/database"
@@ -34,24 +35,34 @@ func main() {
 
 	spew.Dump(config)
 
-	var bucket = &storage.Bucket{}
+	var bucket = storage.CreateBucket(config.S3Id, config.S3Secret)
 
-	bucket.CreateSession(config.S3Id, config.S3Secret)
+	mostRecentOpenDay := parsers.GetMostRecentOpenDay(config.TradierAPIKey)
 
 	symbolsFetcher := database.Database{Client: &database.RedisClient{Client: redis}}
-	symbolsFetcher.LoadSymbolsNeedingUpdate()
+	symbolsFetcher.LoadSymbolsNeedingUpdate(mostRecentOpenDay)
 
+	wikiFetcher := parsers.BuildWikiParser("y5cY91y4m99oEwPjfKBK")
 	tradeFetcher := parsers.BuildTradierParser(config.TradierAPIKey)
 
 	for _, symbol := range symbolsFetcher.Symbols {
-		days, _ := tradeFetcher.FetchLastMonth(symbol.Symbol)
+		days, err := wikiFetcher.FetchLastMonth(symbol.Symbol)
 
-		for _, day := range days {
-			bucket.Store(fmt.Sprintf("%s/%s/%s.json", symbol.Exchange, symbol.Symbol, day.Date.Time.Format(time.RFC3339)), day.Serialize(symbol.Symbol, symbol.Exchange))
-			symbolsFetcher.IncrementStoreCount()
+		if days == nil {
+			days, err = tradeFetcher.FetchLastMonth(symbol.Symbol)
+		} else {
+			symbolsFetcher.MarkPresentInWiki(symbol.Exchange, symbol.Symbol)
 		}
 
-		symbolsFetcher.UpdateSymbolFetched(symbol.Exchange, symbol.Symbol)
+		if err != nil {
+			log.Println(err)
+		} else {
+			for _, day := range days {
+				bucket.Store(fmt.Sprintf("%s/%s/%s.json", symbol.Exchange, symbol.Symbol, day.Date.Time.Format(time.RFC3339)), day.Serialize(symbol.Symbol, symbol.Exchange))
+				symbolsFetcher.IncrementStoreCount()
+			}
+		}
+		symbolsFetcher.UpdateSymbolFetched(symbol.Exchange, symbol.Symbol, mostRecentOpenDay)
 		symbolsFetcher.SetLastUpdated(symbol.Exchange, symbol.Symbol)
 	}
 }
