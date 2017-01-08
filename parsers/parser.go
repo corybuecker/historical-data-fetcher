@@ -38,7 +38,7 @@ func yesterday() string {
 }
 
 func fourteenDaysAgo() string {
-	return time.Now().AddDate(0, 0, -14).Format("2006-01-02")
+	return time.Now().AddDate(0, 0, -7).Format("2006-01-02")
 }
 
 func thirtydaysago() string {

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/corybuecker/historicaldata/database"
 	"github.com/corybuecker/historicaldata/ratelimiters"
 	"github.com/corybuecker/jsonfetcher"
 )
@@ -49,17 +50,31 @@ func BuildTradierParser(token string) *TradierParser {
 	return parser
 }
 
-func (parser *TradierParser) FetchLastMonth(symbol string) ([]History, error) {
-	var test []History
+func (parser *TradierParser) FetchIntoSlice(symbol *database.Symbol) (database.HistoricalData, error) {
+	slice := make(database.HistoricalData, 0)
 	temp := TradierMultiData{}
 
-	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol, fourteenDaysAgo(), yesterday()), parser.headers, &temp)
+	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol.Symbol, symbol.LastDateFetched.Format(time.RFC3339), yesterday()), parser.headers, &temp)
 	if err := parser.rateLimiter.ObeyRateLimit(parser.jsonFetcher.LastResponseHeaders()); err != nil {
-		return test, err
+		return nil, err
 	}
 	if err != nil {
-		return test, err
+		return nil, err
 	}
 
-	return temp.History.Day, nil
+	for _, day := range temp.History.Day {
+
+		slice = append(slice, database.HistoricalDatum{
+			Date:     day.Date.Time,
+			Open:     day.Open,
+			High:     day.High,
+			Low:      day.Low,
+			Close:    day.Close,
+			Volume:   day.Volume,
+			Symbol:   symbol.Symbol,
+			Exchange: symbol.Exchange,
+		})
+	}
+
+	return slice, nil
 }

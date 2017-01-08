@@ -12,12 +12,17 @@ type Database struct {
 }
 
 type Symbol struct {
-	Symbol   string
-	Exchange string
+	Symbol          string
+	Exchange        string
+	LastDateFetched time.Time
 }
 
 func yesterday() string {
 	return time.Now().UTC().AddDate(0, 0, -1).Truncate(time.Hour * 24).Format(time.RFC3339)
+}
+
+func thirtydaysago() time.Time {
+	return time.Now().UTC().Truncate(time.Hour*24).AddDate(0, -1, 0)
 }
 
 func (fetcher *Database) LoadSymbolsNeedingUpdate(mostRecentOpenDay time.Time) error {
@@ -40,12 +45,10 @@ func (fetcher *Database) LoadSymbolsNeedingUpdate(mostRecentOpenDay time.Time) e
 	if err = fetcher.fetchExchange("NYSEARCA"); err != nil {
 		return err
 	}
-
-	// fetcher.Symbols = append(fetcher.Symbols, Symbol{Symbol: "AOSL", Exchange: "NASDAQ"})
 	var tempSymbols []Symbol
 
 	for _, symbol := range fetcher.Symbols {
-		if !mostRecentOpenDay.Equal(fetcher.getLastDate(symbol)) {
+		if !mostRecentOpenDay.Equal(symbol.LastDateFetched) {
 			tempSymbols = append(tempSymbols, symbol)
 		}
 	}
@@ -55,11 +58,18 @@ func (fetcher *Database) LoadSymbolsNeedingUpdate(mostRecentOpenDay time.Time) e
 	return nil
 }
 
-func (fetcher *Database) getLastDate(symbol Symbol) time.Time {
+func (symbol *Symbol) getLastDate(fetcher *Database) bool {
 	var values map[string]string
+
 	values, _ = fetcher.Client.HGetAll(fmt.Sprintf("%s:%s", symbol.Exchange, symbol.Symbol))
-	lastDate, _ := time.Parse(time.RFC3339, values["last_date_fetched"])
-	return lastDate
+
+	if lastDate, err := time.Parse(time.RFC3339, values["last_date_fetched"]); err != nil {
+		symbol.LastDateFetched = thirtydaysago()
+	} else {
+		symbol.LastDateFetched = lastDate
+	}
+
+	return true
 }
 
 func (fetcher *Database) fetchExchange(exchange string) error {
@@ -71,7 +81,9 @@ func (fetcher *Database) fetchExchange(exchange string) error {
 	}
 
 	for _, symbol := range symbolsFromRedis {
-		fetcher.Symbols = append(fetcher.Symbols, Symbol{Symbol: symbol, Exchange: exchange})
+		symbol := Symbol{Symbol: symbol, Exchange: exchange}
+		symbol.getLastDate(fetcher)
+		fetcher.Symbols = append(fetcher.Symbols, symbol)
 	}
 
 	return err
@@ -84,6 +96,10 @@ func (fetcher *Database) UpdateSymbolFetched(exchange, symbol string, mostRecent
 
 func (fetcher *Database) IncrementStoreCount() error {
 	return fetcher.Client.HIncrBy("metrics", "s3_write", 1)
+}
+
+func (fetcher *Database) IncrementDateCount(date string) error {
+	return fetcher.Client.HIncrBy("metrics", date, 1)
 }
 
 func (fetcher *Database) SetLastUpdated(exchange, symbol string) error {

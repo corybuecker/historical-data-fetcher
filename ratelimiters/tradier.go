@@ -40,14 +40,17 @@ func (rateLimiter *TradierRateLimiter) ObeyRateLimit(headers map[string]string) 
 	if ratelimitExpiresTemp, err = strconv.ParseInt(headers["X-Ratelimit-Expiry"], 10, 64); err != nil {
 		return err
 	}
+
 	rateLimitExpires = time.Unix(ratelimitExpiresTemp/1000, 0).Sub(rateLimiter.Clock.Now())
 
-	if rateLimitAvailable > 0 {
-		sleepTime := time.Duration(int64(rateLimitExpires)/rateLimitAvailable) + time.Millisecond*100
+	log.Printf("there are %d requests left", rateLimitAvailable)
+
+	if rateLimitAvailable < 10 {
+		sleepTime := time.Duration(int64(rateLimitExpires)) + time.Second*5
+
 		log.Printf("sleeping for %s to respect rate limit", sleepTime.String())
+
 		rateLimiter.Clock.Sleep(sleepTime)
-	} else {
-		rateLimiter.Clock.Sleep(time.Minute)
 	}
 
 	return nil

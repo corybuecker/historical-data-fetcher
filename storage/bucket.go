@@ -22,7 +22,7 @@ func CreateBucket(id, secret string) *Bucket {
 
 func (bucket *Bucket) Store(key string, contents string) error {
 	params := &s3.PutObjectInput{
-		Bucket: aws.String("thegreyjoy-historical-data"),
+		Bucket: aws.String("thegreyjoy-historical-data-by-symbol"),
 		Key:    aws.String(key),
 		Body:   bytes.NewReader([]byte(contents)),
 	}
@@ -52,4 +52,27 @@ func (bucket *Bucket) createSession(id, secret string) error {
 	bucket.service = s3.New(bucket.session)
 
 	return nil
+}
+
+func (bucket *Bucket) GetExistingSymbolBytes(key string) ([]byte, bool) {
+	var buffer = new(bytes.Buffer)
+
+	params := &s3.GetObjectInput{
+		Bucket: aws.String("thegreyjoy-historical-data-by-symbol"),
+		Key:    aws.String(key),
+	}
+
+	resp, err := bucket.service.GetObject(params)
+
+	if err != nil {
+		return nil, false
+	}
+
+	_, err = buffer.ReadFrom(resp.Body)
+
+	if err != nil {
+		return nil, false
+	}
+
+	return buffer.Bytes(), true
 }

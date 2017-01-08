@@ -1,4 +1,4 @@
-package parsers
+package calendar
 
 import (
 	"fmt"

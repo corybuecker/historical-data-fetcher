@@ -1,9 +1,11 @@
 package parsers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/corybuecker/historicaldata/database"
 	"github.com/corybuecker/jsonfetcher"
 )
 
@@ -28,23 +30,32 @@ func BuildWikiParser(token string) *WikiParser {
 	return parser
 }
 
-func (parser *WikiParser) FetchLastMonth(symbol string) ([]History, error) {
-	var test []History
+func (parser *WikiParser) FetchIntoSlice(symbol *database.Symbol) (database.HistoricalData, error) {
 	temp := WikiResponse{}
+	slice := make(database.HistoricalData, 0)
 
-	parser.jsonFetcher.Get(fmt.Sprintf("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker=%s&date.gt=%s&api_key=%s", symbol, fourteenDaysAgo(), parser.token), parser.headers, &temp)
+	parser.jsonFetcher.Get(fmt.Sprintf("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker=%s&date.gt=%s&api_key=%s", symbol.Symbol, symbol.LastDateFetched.Format(time.RFC3339), parser.token), parser.headers, &temp)
+
+	if len(temp.Datatable.Data) == 0 {
+		return nil, errors.New("there was no data in wiki")
+	}
+
 	for _, arr := range temp.Datatable.Data {
-		time, _ := time.Parse("2006-01-02", arr.([]interface{})[1].(string))
-		test = append(test, History{
-			Date: TradierDate{
-				Time: time,
-			},
-			Open:   float32(arr.([]interface{})[2].(float64)),
-			High:   float32(arr.([]interface{})[3].(float64)),
-			Low:    float32(arr.([]interface{})[4].(float64)),
-			Close:  float32(arr.([]interface{})[5].(float64)),
-			Volume: uint32(arr.([]interface{})[6].(float64)),
+		time, err := time.Parse("2006-01-02", arr.([]interface{})[1].(string))
+		if err != nil {
+			return nil, err
+		}
+		slice = append(slice, database.HistoricalDatum{
+			Date:     time,
+			Open:     float32(arr.([]interface{})[2].(float64)),
+			High:     float32(arr.([]interface{})[3].(float64)),
+			Low:      float32(arr.([]interface{})[4].(float64)),
+			Close:    float32(arr.([]interface{})[5].(float64)),
+			Volume:   uint32(arr.([]interface{})[6].(float64)),
+			Symbol:   symbol.Symbol,
+			Exchange: symbol.Exchange,
 		})
 	}
-	return test, nil
+
+	return slice, nil
 }
