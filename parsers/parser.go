@@ -34,13 +34,13 @@ type Parser interface {
 }
 
 func yesterday() string {
-	return time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+	return time.Now().UTC().AddDate(0, 0, -1).Format("2006-01-02")
 }
 
 func fourteenDaysAgo() string {
-	return time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	return time.Now().UTC().AddDate(0, 0, -7).Format("2006-01-02")
 }
 
 func thirtydaysago() string {
-	return time.Now().AddDate(0, 0, -30).Format("2006-01-02")
+	return time.Now().UTC().AddDate(0, 0, -30).Format("2006-01-02")
 }

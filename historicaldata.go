@@ -53,11 +53,15 @@ func main() {
 
 	spew.Dump(config)
 
-	var bucket = storage.CreateBucket(config.S3Id, config.S3Secret)
+	mostRecentOpenDay, err := calendar.GetMostRecentOpenDay(config.TradierAPIKey)
 
-	mostRecentOpenDay := calendar.GetMostRecentOpenDay(config.TradierAPIKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Printf("the most recent open market day is: %s", mostRecentOpenDay.Format(time.RFC3339))
 
+	var bucket = storage.CreateBucket(config.S3Id, config.S3Secret)
 	symbolsFetcher := database.Database{Client: &database.RedisClient{Client: redis}}
 	symbolsFetcher.LoadSymbolsNeedingUpdate(mostRecentOpenDay)
 

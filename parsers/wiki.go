@@ -34,7 +34,7 @@ func (parser *WikiParser) FetchIntoSlice(symbol *database.Symbol) (database.Hist
 	temp := WikiResponse{}
 	slice := make(database.HistoricalData, 0)
 
-	parser.jsonFetcher.Get(fmt.Sprintf("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker=%s&date.gt=%s&api_key=%s", symbol.Symbol, symbol.LastDateFetched.Format(time.RFC3339), parser.token), parser.headers, &temp)
+	parser.jsonFetcher.Get(fmt.Sprintf("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker=%s&date.gt=%s&api_key=%s", symbol.Symbol, symbol.LastDateFetched.AddDate(0, 0, -7).Format(time.RFC3339), parser.token), parser.headers, &temp)
 
 	if len(temp.Datatable.Data) == 0 {
 		return nil, errors.New("there was no data in wiki")

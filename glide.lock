@@ -1,8 +1,8 @@
 hash: af8681719558093eda3f104b1c160fd88eb39b64da56a2d3447e49a152a1e94b
-updated: 2016-12-31T14:17:35.583981333-06:00
+updated: 2017-01-11T17:39:40.392386811-06:00
 imports:
 - name: github.com/aws/aws-sdk-go
-  version: 36670f6ab1769ad77fa5f7e2c194398733503635
+  version: 63ce630574a5ec05ecd8e8de5cea16332a5a684d
   subpackages:
   - aws
   - aws/awserr
@@ -30,7 +30,7 @@ imports:
   - service/s3
   - service/sts
 - name: github.com/corybuecker/jsonfetcher
-  version: b977255d1dd435c0afd57c65f9f05bcc014019a0
+  version: edf1d191048c13cce6db76f365bae1733fb2802a
 - name: github.com/corybuecker/redisconfig
   version: c21142b9522c378b3076573254bd16695777ad70
 - name: github.com/davecgh/go-spew
@@ -44,7 +44,7 @@ imports:
 - name: gopkg.in/bsm/ratelimit.v1
   version: db14e161995a5177acef654cb0dd785e8ee8bc22
 - name: gopkg.in/redis.v5
-  version: 8fcba2ea878201b70c5a63dd416141d4ddbc601a
+  version: b9cc17bae020d9c1f467ca0f27d7706c1683c370
   subpackages:
   - internal
   - internal/consistenthash
