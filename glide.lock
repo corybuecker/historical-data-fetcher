@@ -1,5 +1,5 @@
-hash: af8681719558093eda3f104b1c160fd88eb39b64da56a2d3447e49a152a1e94b
-updated: 2017-01-11T17:39:40.392386811-06:00
+hash: 3d2ee1bfbb7169579b161884fcb7e99f900d3c26eeddf8b1b6b139e3fdfbd223
+updated: 2017-01-14T09:37:10.089584463-06:00
 imports:
 - name: github.com/aws/aws-sdk-go
   version: 63ce630574a5ec05ecd8e8de5cea16332a5a684d
@@ -41,18 +41,14 @@ imports:
   version: 6f66b0e091edb3c7b380f7c4f0f884274d550b67
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
-- name: gopkg.in/bsm/ratelimit.v1
-  version: db14e161995a5177acef654cb0dd785e8ee8bc22
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
 - name: gopkg.in/redis.v5
-  version: b9cc17bae020d9c1f467ca0f27d7706c1683c370
+  version: 6da05abbaa03e90e5878f0ab711478698609fe96
   subpackages:
   - internal
   - internal/consistenthash
   - internal/hashtag
   - internal/pool
   - internal/proto
-testImports:
-- name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
-  subpackages:
-  - assert
+testImports: []

@@ -1,14 +1,15 @@
 package: github.com/corybuecker/historicaldata
 import:
-- package: gopkg.in/redis.v5
-  version: ^5.1.3
-- package: gopkg.in/bsm/ratelimit.v1
-- package: github.com/corybuecker/redisconfig
 - package: github.com/aws/aws-sdk-go
-  version: ^1.6.8
-- package: github.com/corybuecker/jsonfetcher
-testImport:
-- package: github.com/stretchr/testify
-  version: ^1.1.4
   subpackages:
-  - assert
+  - aws
+  - aws/credentials
+  - aws/session
+  - service/s3
+- package: github.com/corybuecker/jsonfetcher
+- package: github.com/corybuecker/redisconfig
+- package: github.com/davecgh/go-spew
+  subpackages:
+  - spew
+- package: gopkg.in/redis.v5
+- package: github.com/stretchr/testify
