@@ -7,9 +7,9 @@ import (
 	"sort"
 	"time"
 
+	"github.com/corybuecker/historicaldata/apis"
 	"github.com/corybuecker/historicaldata/calendar"
 	"github.com/corybuecker/historicaldata/database"
-	"github.com/corybuecker/historicaldata/parsers"
 	"github.com/corybuecker/historicaldata/storage"
 	"github.com/corybuecker/redisconfig"
 	"github.com/davecgh/go-spew/spew"
@@ -65,8 +65,8 @@ func main() {
 	symbolsFetcher := database.Database{Client: &database.RedisClient{Client: redis}}
 	symbolsFetcher.LoadSymbolsNeedingUpdate(mostRecentOpenDay)
 
-	wikiFetcher := parsers.BuildWikiParser(config.QuandlAPIKey)
-	tradeFetcher := parsers.BuildTradierParser(config.TradierAPIKey)
+	wikiFetcher := apis.BuildWiki(config.QuandlAPIKey)
+	tradeFetcher := apis.BuildTradierParser(config.TradierAPIKey)
 	log.Printf("fetching %d symbols", len(symbolsFetcher.Symbols))
 
 	for i, symbol := range symbolsFetcher.Symbols {

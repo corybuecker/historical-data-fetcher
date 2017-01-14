@@ -1,4 +1,4 @@
-package parsers
+package apis
 
 import (
 	"errors"
@@ -9,32 +9,32 @@ import (
 	"github.com/corybuecker/jsonfetcher"
 )
 
-type WikiResponse struct {
+type wikiResponse struct {
 	Datatable struct {
 		Data []interface{}
 	}
 }
 
-type WikiParser struct {
-	jsonFetcher *jsonfetcher.Jsonfetcher
+type Wiki struct {
+	jsonFetcher jsonfetcher.Fetcher
 	token       string
 	headers     map[string]string
 }
 
-func BuildWikiParser(token string) *WikiParser {
-	parser := &WikiParser{
-		jsonFetcher: &jsonfetcher.Jsonfetcher{},
+func BuildWiki(token string) *Wiki {
+	parser := &Wiki{
+		jsonFetcher: new(jsonfetcher.Jsonfetcher),
 		token:       token,
 		headers:     make(map[string]string),
 	}
 	return parser
 }
 
-func (parser *WikiParser) FetchIntoSlice(symbol *database.Symbol) (database.HistoricalData, error) {
-	temp := WikiResponse{}
+func (parser *Wiki) FetchIntoSlice(symbol *database.Symbol) (database.HistoricalData, error) {
+	temp := wikiResponse{}
 	slice := make(database.HistoricalData, 0)
 
-	parser.jsonFetcher.Get(fmt.Sprintf("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker=%s&date.gt=%s&api_key=%s", symbol.Symbol, symbol.LastDateFetched.AddDate(0, 0, -7).Format(time.RFC3339), parser.token), parser.headers, &temp)
+	parser.jsonFetcher.Get(fmt.Sprintf("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker=%s&date.gt=%s&api_key=%s", symbol.Symbol, symbol.LastDateFetched.AddDate(0, 0, -10).Format(time.RFC3339), parser.token), parser.headers, &temp)
 
 	if len(temp.Datatable.Data) == 0 {
 		return nil, errors.New("there was no data in wiki")

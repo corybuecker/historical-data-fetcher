@@ -1,4 +1,4 @@
-package parsers
+package apis
 
 import (
 	"fmt"
@@ -54,7 +54,7 @@ func (parser *TradierParser) FetchIntoSlice(symbol *database.Symbol) (database.H
 	slice := make(database.HistoricalData, 0)
 	temp := TradierMultiData{}
 
-	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol.Symbol, symbol.LastDateFetched.AddDate(0, 0, -7).Format(time.RFC3339), yesterday()), parser.headers, &temp)
+	err := parser.jsonFetcher.Get(fmt.Sprintf("https://sandbox.tradier.com/v1/markets/history?symbol=%s&start=%s&end=%s", symbol.Symbol, symbol.LastDateFetched.AddDate(0, 0, -10).Format(time.RFC3339), yesterday()), parser.headers, &temp)
 	if err := parser.rateLimiter.ObeyRateLimit(parser.jsonFetcher.LastResponseHeaders()); err != nil {
 		return nil, err
 	}
