@@ -1,113 +1,60 @@
 package database
 
-import (
-	"fmt"
-	"log"
-	"time"
-)
+import "time"
 
-type Database struct {
-	Client  DatabaseClient
+type Symbols struct {
 	Symbols []Symbol
+	client  DatabaseClient
 }
 
-type Symbol struct {
-	Symbol          string
-	Exchange        string
-	LastDateFetched time.Time
+func (symbols *Symbols) Initialize() (err error) {
+	symbols.Symbols = make([]Symbol, 0)
+
+	if err = symbols.fetchExchange("NASDAQ"); err != nil {
+		return
+	}
+
+	if err = symbols.fetchExchange("AMEX"); err != nil {
+		return
+	}
+
+	if err = symbols.fetchExchange("NYSE"); err != nil {
+		return
+	}
+
+	if err = symbols.fetchExchange("NYSEARCA"); err != nil {
+		return
+	}
+
+	return
 }
 
-func yesterday() string {
-	return time.Now().UTC().AddDate(0, 0, -1).Truncate(time.Hour * 24).Format(time.RFC3339)
-}
-
-func thirtydaysago() time.Time {
-	return time.Now().UTC().Truncate(time.Hour*24).AddDate(0, -1, 0)
-}
-
-func (fetcher *Database) LoadSymbolsNeedingUpdate(mostRecentOpenDay time.Time) error {
-	fetcher.Symbols = make([]Symbol, 0)
-
-	var err error
-
-	if err = fetcher.fetchExchange("NASDAQ"); err != nil {
-		return err
-	}
-
-	if err = fetcher.fetchExchange("AMEX"); err != nil {
-		return err
-	}
-
-	if err = fetcher.fetchExchange("NYSE"); err != nil {
-		return err
-	}
-
-	if err = fetcher.fetchExchange("NYSEARCA"); err != nil {
-		return err
-	}
+func (symbols *Symbols) Filter(mostRecentOpenDay time.Time) {
 	var tempSymbols []Symbol
 
-	for _, symbol := range fetcher.Symbols {
-		if !mostRecentOpenDay.Equal(symbol.LastDateFetched) {
+	for _, symbol := range symbols.Symbols {
+		if !symbol.LastDateFetched.IsZero() && mostRecentOpenDay.After(symbol.LastDateFetched) {
 			tempSymbols = append(tempSymbols, symbol)
 		}
 	}
 
-	fetcher.Symbols = tempSymbols
+	symbols.Symbols = tempSymbols
 
-	return nil
+	return
 }
 
-func (symbol *Symbol) getLastDate(fetcher *Database) bool {
-	var values map[string]string
-
-	values, _ = fetcher.Client.HGetAll(fmt.Sprintf("%s:%s", symbol.Exchange, symbol.Symbol))
-
-	if lastDate, err := time.Parse(time.RFC3339, values["last_date_fetched"]); err != nil {
-		symbol.LastDateFetched = thirtydaysago()
-	} else {
-		symbol.LastDateFetched = lastDate
-	}
-
-	return true
-}
-
-func (fetcher *Database) fetchExchange(exchange string) error {
+func (symbols *Symbols) fetchExchange(exchange string) (err error) {
 	var symbolsFromRedis []string
-	var err error
 
-	if symbolsFromRedis, err = fetcher.Client.SMembers(exchange); err != nil {
-		return err
+	if symbolsFromRedis, err = symbols.client.SMembers(exchange); err != nil {
+		return
 	}
 
 	for _, symbol := range symbolsFromRedis {
-		symbol := Symbol{Symbol: symbol, Exchange: exchange}
-		symbol.getLastDate(fetcher)
-		fetcher.Symbols = append(fetcher.Symbols, symbol)
+		symbol := Symbol{Symbol: symbol, Exchange: exchange, client: symbols.client}
+		symbol.getLastDate()
+		symbols.Symbols = append(symbols.Symbols, symbol)
 	}
 
-	return err
-}
-
-func (fetcher *Database) UpdateSymbolFetched(exchange, symbol string, mostRecentOpenDay time.Time) error {
-	log.Printf("updating last fetched date for %s:%s to %s", exchange, symbol, mostRecentOpenDay.Format(time.RFC3339))
-	return fetcher.Client.HSet(fmt.Sprintf("%s:%s", exchange, symbol), "last_date_fetched", mostRecentOpenDay.Format(time.RFC3339))
-}
-
-func (fetcher *Database) IncrementStoreCount() error {
-	return fetcher.Client.HIncrBy("metrics", "s3_write", 1)
-}
-
-func (fetcher *Database) IncrementDateCount(date string) error {
-	return fetcher.Client.HIncrBy("metrics", date, 1)
-}
-
-func (fetcher *Database) SetLastUpdated(exchange, symbol string) error {
-	log.Printf("updating last updated for %s:%s", exchange, symbol)
-	return fetcher.Client.HSet(fmt.Sprintf("%s:%s", exchange, symbol), "last_updated", time.Now().UTC().Format(time.RFC3339))
-}
-
-func (fetcher *Database) MarkPresentInWiki(exchange, symbol string) error {
-	log.Printf("updating present in wiki for %s:%s", exchange, symbol)
-	return fetcher.Client.HSet(fmt.Sprintf("%s:%s", exchange, symbol), "present_in_wiki", "true")
+	return
 }
