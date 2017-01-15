@@ -62,8 +62,9 @@ func main() {
 	log.Printf("the most recent open market day is: %s", mostRecentOpenDay.Format(time.RFC3339))
 
 	var bucket = storage.CreateBucket(config.S3Id, config.S3Secret)
-	symbolsFetcher := database.Database{Client: &database.RedisClient{Client: redis}}
-	symbolsFetcher.LoadSymbolsNeedingUpdate(mostRecentOpenDay)
+	symbolsFetcher := database.Symbols{Client: &database.RedisClient{Client: redis}}
+	symbolsFetcher.Initialize()
+	symbolsFetcher.Filter(mostRecentOpenDay)
 
 	wikiFetcher := apis.BuildWiki(config.QuandlAPIKey)
 	tradeFetcher := apis.BuildTradierParser(config.TradierAPIKey)
@@ -86,7 +87,7 @@ func main() {
 		if len(fetchedEntries) == 0 {
 			fetchedEntries, err = tradeFetcher.FetchIntoSlice(&symbol)
 		} else {
-			symbolsFetcher.MarkPresentInWiki(symbol.Exchange, symbol.Symbol)
+			symbol.MarkPresentInWiki()
 		}
 
 		historicalData = append(historicalData, fetchedEntries...)
@@ -101,8 +102,8 @@ func main() {
 		newSymbolBytes, _ := json.Marshal(historicalData)
 		bucket.Store(fmt.Sprintf("%s/%s.json", symbol.Exchange, symbol.Symbol), string(newSymbolBytes))
 
-		symbolsFetcher.UpdateSymbolFetched(symbol.Exchange, symbol.Symbol, historicalData.MostRecentDay())
-		symbolsFetcher.SetLastUpdated(symbol.Exchange, symbol.Symbol)
+		symbol.UpdateFetched(historicalData.MostRecentDay())
+		symbol.SetLastUpdated()
 
 		log.Printf("remaining symbols %d", len(symbolsFetcher.Symbols)-i)
 	}

@@ -4,7 +4,7 @@ import "time"
 
 type Symbols struct {
 	Symbols []Symbol
-	client  DatabaseClient
+	Client  DatabaseClient
 }
 
 func (symbols *Symbols) Initialize() (err error) {
@@ -46,12 +46,12 @@ func (symbols *Symbols) Filter(mostRecentOpenDay time.Time) {
 func (symbols *Symbols) fetchExchange(exchange string) (err error) {
 	var symbolsFromRedis []string
 
-	if symbolsFromRedis, err = symbols.client.SMembers(exchange); err != nil {
+	if symbolsFromRedis, err = symbols.Client.SMembers(exchange); err != nil {
 		return
 	}
 
 	for _, symbol := range symbolsFromRedis {
-		symbol := Symbol{Symbol: symbol, Exchange: exchange, client: symbols.client}
+		symbol := Symbol{Symbol: symbol, Exchange: exchange, client: symbols.Client}
 		symbol.getLastDate()
 		symbols.Symbols = append(symbols.Symbols, symbol)
 	}

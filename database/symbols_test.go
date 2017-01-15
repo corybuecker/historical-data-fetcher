@@ -22,7 +22,7 @@ func init() {
 
 	now = time.Now().Truncate(time.Second)
 
-	symbols = &Symbols{client: &RedisClient{
+	symbols = &Symbols{Client: &RedisClient{
 		Client: redisConnection,
 	}}
 }
