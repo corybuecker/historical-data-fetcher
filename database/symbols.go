@@ -29,7 +29,7 @@ func (symbols *Symbols) Initialize(mostRecentOpenDay time.Time) (err error) {
 	}
 
 	for _, symbol := range symbols.Symbols {
-		if mostRecentOpenDay.After(symbol.LastDateFetched) {
+		if mostRecentOpenDay.After(*symbol.LastDateFetched) {
 			tempSymbols = append(tempSymbols, symbol)
 		}
 	}

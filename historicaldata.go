@@ -101,7 +101,6 @@ func main() {
 		newSymbolBytes, _ := json.Marshal(historicalData)
 		bucket.Store(fmt.Sprintf("%s/%s.json", symbol.Exchange, symbol.Symbol), string(newSymbolBytes))
 
-		symbolsFetcher.IncrementDateCount(mostRecentOpenDay.Format(time.RFC3339))
 		symbolsFetcher.UpdateSymbolFetched(symbol.Exchange, symbol.Symbol, historicalData.MostRecentDay())
 		symbolsFetcher.SetLastUpdated(symbol.Exchange, symbol.Symbol)
 
