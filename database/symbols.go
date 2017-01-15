@@ -7,10 +7,8 @@ type Symbols struct {
 	client  DatabaseClient
 }
 
-func (symbols *Symbols) Initialize(mostRecentOpenDay time.Time) (err error) {
+func (symbols *Symbols) Initialize() (err error) {
 	symbols.Symbols = make([]Symbol, 0)
-
-	var tempSymbols []Symbol
 
 	if err = symbols.fetchExchange("NASDAQ"); err != nil {
 		return
@@ -28,8 +26,14 @@ func (symbols *Symbols) Initialize(mostRecentOpenDay time.Time) (err error) {
 		return
 	}
 
+	return
+}
+
+func (symbols *Symbols) Filter(mostRecentOpenDay time.Time) {
+	var tempSymbols []Symbol
+
 	for _, symbol := range symbols.Symbols {
-		if mostRecentOpenDay.After(*symbol.LastDateFetched) {
+		if !symbol.LastDateFetched.IsZero() && mostRecentOpenDay.After(symbol.LastDateFetched) {
 			tempSymbols = append(tempSymbols, symbol)
 		}
 	}
@@ -39,12 +43,11 @@ func (symbols *Symbols) Initialize(mostRecentOpenDay time.Time) (err error) {
 	return
 }
 
-func (symbols *Symbols) fetchExchange(exchange string) error {
+func (symbols *Symbols) fetchExchange(exchange string) (err error) {
 	var symbolsFromRedis []string
-	var err error
 
 	if symbolsFromRedis, err = symbols.client.SMembers(exchange); err != nil {
-		return err
+		return
 	}
 
 	for _, symbol := range symbolsFromRedis {
@@ -53,5 +56,5 @@ func (symbols *Symbols) fetchExchange(exchange string) error {
 		symbols.Symbols = append(symbols.Symbols, symbol)
 	}
 
-	return err
+	return
 }

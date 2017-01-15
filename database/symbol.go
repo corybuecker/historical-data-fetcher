@@ -8,7 +8,7 @@ import (
 type Symbol struct {
 	Symbol          string
 	Exchange        string
-	LastDateFetched *time.Time
+	LastDateFetched time.Time
 	client          DatabaseClient
 }
 
@@ -27,7 +27,7 @@ func (symbol *Symbol) getLastDate() bool {
 	var values map[string]string
 	var err error
 
-	symbol.LastDateFetched = nil
+	symbol.LastDateFetched = time.Time{}
 
 	values, err = symbol.client.HGetAll(fmt.Sprintf("%s:%s", symbol.Exchange, symbol.Symbol))
 
@@ -38,7 +38,7 @@ func (symbol *Symbol) getLastDate() bool {
 	if lastDate, err := time.Parse(time.RFC3339, values["last_date_fetched"]); err != nil {
 		return false
 	} else {
-		symbol.LastDateFetched = &lastDate
+		symbol.LastDateFetched = lastDate
 	}
 
 	return true

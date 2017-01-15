@@ -16,7 +16,10 @@ func init() {
 	redisConnection = redis.NewFailoverClient(&redis.FailoverOptions{
 		MasterName:    "master",
 		SentinelAddrs: []string{":26379"},
+		DB:            1,
 	})
+
+	redisConnection.FlushDb()
 
 	symbol = &Symbol{
 		Symbol:   "TESTSYMBOL",
@@ -66,11 +69,11 @@ func TestMarkPresentInWiki(t *testing.T) {
 
 func TestGetLastDate(t *testing.T) {
 	assert.True(t, symbol.getLastDate())
-	assert.Equal(t, now, *symbol.LastDateFetched)
+	assert.Equal(t, now, symbol.LastDateFetched)
 }
 
 func TestGetLastDateWithoutKey(t *testing.T) {
 	redisConnection.Del("TESTEXCHANGE:TESTSYMBOL")
 	assert.False(t, symbol.getLastDate())
-	assert.Nil(t, symbol.LastDateFetched)
+	assert.True(t, symbol.LastDateFetched.IsZero())
 }
