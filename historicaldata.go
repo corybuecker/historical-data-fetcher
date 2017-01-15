@@ -63,7 +63,11 @@ func main() {
 
 	var bucket = storage.CreateBucket(config.S3Id, config.S3Secret)
 	symbolsFetcher := database.Symbols{Client: &database.RedisClient{Client: redis}}
-	symbolsFetcher.Initialize()
+
+	err = symbolsFetcher.Initialize()
+	if err != nil {
+		log.Fatal(err)
+	}
 	symbolsFetcher.Filter(mostRecentOpenDay)
 
 	wikiFetcher := apis.BuildWiki(config.QuandlAPIKey)

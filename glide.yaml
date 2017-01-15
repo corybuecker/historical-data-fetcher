@@ -12,4 +12,6 @@ import:
   subpackages:
   - spew
 - package: gopkg.in/redis.v5
+testImport:
 - package: github.com/stretchr/testify
+- package: gopkg.in/jarcoal/httpmock.v1
