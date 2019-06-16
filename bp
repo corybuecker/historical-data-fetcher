@@ -1,0 +1,4 @@
+#!/usr/bin/env bash -e
+
+docker build -t $DOCKER_REPO:latest .
+docker push $DOCKER_REPO:latest
