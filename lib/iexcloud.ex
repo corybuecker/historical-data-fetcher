@@ -1,5 +1,6 @@
 defmodule Iexcloud do
   use HTTPoison.Base
+  require Logger
 
   def process_request_url(url) do
     with %{path: path, query: query} <- URI.parse(url),
@@ -17,7 +18,16 @@ defmodule Iexcloud do
   end
 
   def process_response_body(body) do
-    body
-    |> Poison.decode!()
+    with {:ok, results} <- body |> Poison.decode() do
+      results
+    else
+      err -> handle_error(err)
+    end
+  end
+
+  defp handle_error(err) do
+    err |> IO.inspect()
+
+    []
   end
 end

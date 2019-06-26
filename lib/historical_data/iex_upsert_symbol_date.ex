@@ -15,7 +15,7 @@ defmodule HistoricalData.IexUpsertSymbolDate do
            |> Iexcloud.get() do
       historical_data |> Enum.each(fn d -> insert_historical_data(symbol, d) end)
     else
-      err -> Logger.error(err)
+      err -> err |> IO.inspect()
     end
   end
 

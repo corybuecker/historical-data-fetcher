@@ -8,7 +8,7 @@ defmodule Mix.Tasks.UpdateIexHistoricalData do
   alias HistoricalData.IexUpsertSymbolDate
 
   @shortdoc "Simply runs the HistoricalData.run/0 function"
-  def run(_) do
+  def run(args) do
     Mix.Task.run("app.start")
 
     Ecto.Adapters.SQL.query!(
@@ -16,9 +16,25 @@ defmodule Mix.Tasks.UpdateIexHistoricalData do
       "REFRESH MATERIALIZED VIEW iex_historical_data_symbols;"
     )
 
+    from =
+      case args do
+        [] -> Timex.shift(Timex.today(), days: -2)
+        [f] -> Timex.shift(Timex.today(), days: String.to_integer(f))
+        [f, _t] -> Timex.shift(Timex.today(), days: String.to_integer(f))
+      end
+
+    to =
+      case args do
+        [] -> Timex.today()
+        [_f] -> Timex.today()
+        [_f, t] -> Timex.shift(Timex.today(), days: String.to_integer(t))
+      end
+
+    Logger.info("Starting from #{from} until #{to}")
+
     Timex.Interval.new(
-      from: Timex.shift(Timex.today(), days: -2),
-      until: Timex.today(),
+      from: from,
+      until: to,
       right_open: false
     )
     |> process()
