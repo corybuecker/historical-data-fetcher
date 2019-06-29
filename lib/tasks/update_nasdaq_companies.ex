@@ -16,19 +16,23 @@ defmodule Mix.Tasks.UpdateNasdaqCompanies do
   defp insert_symbol(symbol) do
     Logger.info(symbol |> inspect())
 
-    {:ok, _} =
-      NasdaqCompany.changeset(%NasdaqCompany{}, %{
-        symbol: Enum.at(symbol, 0),
-        name: Enum.at(symbol, 1),
-        last_sale: Enum.at(symbol, 2),
-        market_cap: Enum.at(symbol, 3),
-        adr_tso: Enum.at(symbol, 4),
-        ipo_year: Enum.at(symbol, 5),
-        sector: Enum.at(symbol, 6),
-        industry: Enum.at(symbol, 7),
-        summary_quote: Enum.at(symbol, 8)
-      })
-      |> Repo.insert(on_conflict: :replace_all_except_primary_key, conflict_target: :symbol)
+    with {:ok, _} <-
+           NasdaqCompany.changeset(%NasdaqCompany{}, %{
+             symbol: Enum.at(symbol, 0),
+             name: Enum.at(symbol, 1),
+             last_sale: Enum.at(symbol, 2),
+             market_cap: Enum.at(symbol, 3),
+             adr_tso: Enum.at(symbol, 4),
+             ipo_year: Enum.at(symbol, 5),
+             sector: Enum.at(symbol, 6),
+             industry: Enum.at(symbol, 7),
+             summary_quote: Enum.at(symbol, 8)
+           })
+           |> Repo.insert(on_conflict: :replace_all_except_primary_key, conflict_target: :symbol) do
+      true
+    else
+      err -> err |> IO.inspect()
+    end
   end
 
   defp parse_csv(html) do
