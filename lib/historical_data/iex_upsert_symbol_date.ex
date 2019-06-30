@@ -8,15 +8,40 @@ defmodule HistoricalData.IexUpsertSymbolDate do
   alias Ecto.Changeset
 
   def upsert(symbol, date) do
-    with {:ok, %{body: historical_data}} <-
-           @base_path
-           |> add_placeholder(symbol)
-           |> add_placeholder(Date.to_iso8601(date, :basic))
-           |> Iexcloud.get() do
-      historical_data |> Enum.each(fn d -> insert_historical_data(symbol, d) end)
+    {symbol, date} |> skip_if_in_database() |> fetch() |> insert()
+  end
+
+  defp skip_if_in_database(q) do
+    case IexHistoricalData.exists?(q) do
+      true -> {:error, "skipping #{q |> Tuple.to_list() |> Enum.join(", ")} since it exists"}
+      false -> {:ok, q}
+    end
+  end
+
+  defp fetch({:ok, {symbol, date}}) do
+    case @base_path
+         |> add_placeholder(symbol)
+         |> add_placeholder(Date.to_iso8601(date, :basic))
+         |> Iexcloud.get() do
+      {:ok, %{body: historical_data}} -> {:ok, {symbol, date, historical_data}}
+      err -> {:error, err}
+    end
+  end
+
+  defp fetch({:error, error}) do
+    {:error, error}
+  end
+
+  defp insert({:ok, {symbol, _date, historical_data}}) do
+    with do
+      historical_data |> Enum.each(fn datum -> insert_historical_data(symbol, datum) end)
     else
       err -> err |> IO.inspect()
     end
+  end
+
+  defp insert({:error, error}) do
+    IO.inspect(error)
   end
 
   defp insert_historical_data(symbol, historical_data) do

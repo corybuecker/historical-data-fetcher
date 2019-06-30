@@ -1,6 +1,8 @@
 defmodule HistoricalData.IexHistoricalData do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query
+  alias HistoricalData.Repo
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
@@ -19,6 +21,13 @@ defmodule HistoricalData.IexHistoricalData do
     field(:unadjusted_volume, :decimal)
 
     timestamps()
+  end
+
+  def exists?({symbol, date}) do
+    nd = date |> NaiveDateTime.to_date()
+    query = from(iex in "iex_historical_data", where: iex.symbol == ^symbol and iex.date == ^nd)
+
+    Repo.exists?(query)
   end
 
   def changeset(iex_historical_data, params \\ %{}) do

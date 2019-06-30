@@ -35,6 +35,7 @@ defmodule Mix.Tasks.UpdateIexHistoricalData do
     Timex.Interval.new(
       from: from,
       until: to,
+      left_open: false,
       right_open: false
     )
     |> process()
@@ -51,8 +52,9 @@ defmodule Mix.Tasks.UpdateIexHistoricalData do
     Logger.info(intervals |> inspect())
 
     intervals
-    |> Enum.each(fn interval -> IexUpsertSymbolDate.upsert(company.symbol, interval) end)
-
-    :timer.sleep(500)
+    |> Enum.each(fn interval ->
+      IexUpsertSymbolDate.upsert(company.symbol, interval)
+      :timer.sleep(50)
+    end)
   end
 end
