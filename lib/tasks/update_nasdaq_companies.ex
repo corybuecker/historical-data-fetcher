@@ -10,7 +10,14 @@ defmodule Mix.Tasks.UpdateNasdaqCompanies do
   def run(_) do
     Mix.Task.run("app.start")
     Repo.query("TRUNCATE nasdaq_companies", [])
-    fetch_csv() |> parse_csv() |> Enum.each(&insert_symbol/1)
+
+    fetch_csv("/screening/companies-by-industry.aspx?industry=Technology&render=download")
+    |> parse_csv()
+    |> Enum.each(&insert_symbol/1)
+
+    fetch_csv("/screening/companies-by-industry.aspx?industry=Public+Utilities&render=download")
+    |> parse_csv()
+    |> Enum.each(&insert_symbol/1)
   end
 
   defp insert_symbol(symbol) do
@@ -39,8 +46,8 @@ defmodule Mix.Tasks.UpdateNasdaqCompanies do
     CSV.parse_string(html)
   end
 
-  defp fetch_csv do
-    case Nasdaq.get("/screening/companies-by-industry.aspx?industry=Technology&render=download") do
+  defp fetch_csv(path) do
+    case Nasdaq.get(path) do
       {:ok, %{body: html}} -> html
       _ -> ""
     end
