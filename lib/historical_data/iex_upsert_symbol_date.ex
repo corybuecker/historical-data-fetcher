@@ -27,7 +27,7 @@ defmodule HistoricalData.IexUpsertSymbolDate do
     case @base_previous_path
          |> add_placeholder(symbol)
          |> Iexcloud.get() do
-      {:ok, %{body: historical_data}} -> {:ok, {symbol, nil, [historical_data]}}
+      {:ok, %{body: historical_data}} -> {:ok, {symbol, nil, List.flatten([historical_data])}}
       err -> {:error, err}
     end
   end
