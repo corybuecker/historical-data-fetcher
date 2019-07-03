@@ -1,5 +1,6 @@
 defmodule HistoricalData.IexUpsertSymbolDate do
   @base_path "/stable/stock/%s/chart/date/%s?chartByDay=true"
+  @base_previous_path "/stable/stock/%s/previous"
 
   require Logger
 
@@ -11,10 +12,23 @@ defmodule HistoricalData.IexUpsertSymbolDate do
     {symbol, date} |> skip_if_in_database() |> fetch() |> insert()
   end
 
+  def upsert_previous(symbol) do
+    symbol |> fetch_previous() |> insert()
+  end
+
   defp skip_if_in_database(q) do
     case IexHistoricalData.exists?(q) do
       true -> {:error, "skipping #{q |> Tuple.to_list() |> Enum.join(", ")} since it exists"}
       false -> {:ok, q}
+    end
+  end
+
+  defp fetch_previous(symbol) do
+    case @base_previous_path
+         |> add_placeholder(symbol)
+         |> Iexcloud.get() do
+      {:ok, %{body: historical_data}} -> {:ok, {symbol, nil, [historical_data]}}
+      err -> {:error, err}
     end
   end
 
@@ -36,12 +50,12 @@ defmodule HistoricalData.IexUpsertSymbolDate do
     with do
       historical_data |> Enum.each(fn datum -> insert_historical_data(symbol, datum) end)
     else
-      err -> err |> IO.inspect()
+      err -> Logger.error(err |> inspect())
     end
   end
 
   defp insert({:error, error}) do
-    IO.inspect(error)
+    Logger.error(error |> inspect())
   end
 
   defp insert_historical_data(symbol, historical_data) do
