@@ -4,8 +4,8 @@ defmodule HistoricalData.MixProject do
   def project do
     [
       app: :historical_data,
-      version: "0.1.0",
-      elixir: "~> 1.8",
+      version: "1.0.0",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -21,12 +21,12 @@ defmodule HistoricalData.MixProject do
     [
       {:httpoison, "~> 1.5"},
       {:poison, "~> 4.0"},
-      {:ecto_sql, "~> 3.0"},
+      {:ecto_sql, "~> 3.1"},
       {:postgrex, ">= 0.0.0"},
       {:floki, "~> 0.21"},
-      {:timex, "~> 3.1"},
+      {:timex, "~> 3.6"},
       {:nimble_csv, "~> 0.3"},
-      {:credo, "~> 1.0", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.1", only: [:dev, :test], runtime: false}
     ]
   end
 end
