@@ -7,15 +7,7 @@ defmodule HistoricalData.MixProject do
       version: "1.0.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      default_release: :main,
-      releases: [
-        main: [
-          include_executables_for: [:unix],
-          applications: [runtime_tools: :permanent],
-          include_system_libs: true
-        ]
-      ]
+      deps: deps()
     ]
   end
 

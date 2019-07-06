@@ -6,7 +6,7 @@ defmodule Polygon do
          query <- if(query, do: query, else: ""),
          query <-
            URI.decode_query(query)
-           |> Map.merge(%{"apiKey" => Application.get_env(:historical_data, :polygon_key)}) do
+           |> Map.merge(%{"apiKey" => System.get_env("APCA_API_KEY_ID")}) do
       URI.parse("https://api.polygon.io")
       |> URI.merge(path)
       |> URI.merge("?" <> URI.encode_query(query))

@@ -8,7 +8,7 @@ defmodule Iexcloud do
          query <-
            URI.decode_query(query)
            |> Map.merge(%{
-             "token" => Application.get_env(:historical_data, :iexcloud_key)
+             "token" => System.get_env("IEXCLOUD_KEY")
            }) do
       URI.parse("https://cloud.iexapis.com")
       |> URI.merge(path)
