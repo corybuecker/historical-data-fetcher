@@ -1,15 +1,12 @@
-defmodule Mix.Tasks.UpdatePreviousIexHistoricalData do
-  use Mix.Task
-
+defmodule HistoricalData.Tasks.UpdatePreviousIexHistoricalData do
   require Logger
 
   alias HistoricalData.IexHistoricalDataSymbol
   alias HistoricalData.Repo
   alias HistoricalData.IexUpsertSymbolDate
 
-  @shortdoc "Simply runs the HistoricalData.run/0 function"
-  def run(args) do
-    Mix.Task.run("app.start")
+  def run() do
+    Application.ensure_all_started(:historical_data)
 
     Ecto.Adapters.SQL.query!(
       Repo,

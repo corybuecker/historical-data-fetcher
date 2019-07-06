@@ -1,14 +1,12 @@
-defmodule Mix.Tasks.UpdateSymbols do
-  use Mix.Task
-
+defmodule HistoricalData.Tasks.UpdateSymbols do
   require Logger
 
   alias HistoricalData.IexSymbol
   alias HistoricalData.Repo
 
-  @shortdoc "Simply runs the HistoricalData.run/0 function"
-  def run(_) do
-    Mix.Task.run("app.start")
+  def run() do
+    Application.ensure_all_started(:historical_data)
+
     {:ok, %{body: symbols}} = Iexcloud.get("/stable/ref-data/symbols")
     symbols |> Enum.each(&insert_symbol/1)
   end

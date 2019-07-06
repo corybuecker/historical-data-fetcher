@@ -1,14 +1,13 @@
-defmodule Mix.Tasks.UpdateNasdaqCompanies do
-  use Mix.Task
-
+defmodule HistoricalData.Tasks.UpdateNasdaqCompanies do
   require Logger
 
   alias HistoricalData.NasdaqCompany
   alias HistoricalData.Repo
   alias NimbleCSV.RFC4180, as: CSV
 
-  def run(_) do
-    Mix.Task.run("app.start")
+  def run() do
+    Application.ensure_all_started(:historical_data)
+
     Repo.query("TRUNCATE nasdaq_companies", [])
 
     fetch_csv("/screening/companies-by-industry.aspx?industry=Technology&render=download")

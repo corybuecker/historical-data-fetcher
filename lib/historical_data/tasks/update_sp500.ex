@@ -1,14 +1,12 @@
-defmodule Mix.Tasks.UpdateSp500 do
-  use Mix.Task
-
+defmodule HistoricalData.Tasks.UpdateSp500 do
   require Logger
 
   alias HistoricalData.Sp500Company
   alias HistoricalData.Repo
 
-  @shortdoc "Simply runs the HistoricalData.run/0 function"
-  def run(_) do
-    Mix.Task.run("app.start")
+  def run() do
+    Application.ensure_all_started(:historical_data)
+
     Repo.query("TRUNCATE sp500_companies", [])
     fetch_html() |> parse_html() |> extract_companies() |> Enum.each(&insert_symbol/1)
   end

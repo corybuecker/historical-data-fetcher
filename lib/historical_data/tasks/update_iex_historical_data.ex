@@ -1,15 +1,12 @@
-defmodule Mix.Tasks.UpdateIexHistoricalData do
-  use Mix.Task
-
+defmodule HistoricalData.Tasks.UpdateIexHistoricalData do
   require Logger
 
   alias HistoricalData.IexHistoricalDataSymbol
   alias HistoricalData.Repo
   alias HistoricalData.IexUpsertSymbolDate
 
-  @shortdoc "Simply runs the HistoricalData.run/0 function"
-  def run(args) do
-    Mix.Task.run("app.start")
+  def run(args \\ []) do
+    Application.ensure_all_started(:historical_data)
 
     Ecto.Adapters.SQL.query!(
       Repo,
@@ -19,15 +16,15 @@ defmodule Mix.Tasks.UpdateIexHistoricalData do
     from =
       case args do
         [] -> Timex.shift(Timex.today(), days: -2)
-        [f] -> Timex.shift(Timex.today(), days: String.to_integer(f))
-        [f, _t] -> Timex.shift(Timex.today(), days: String.to_integer(f))
+        [f] -> Timex.shift(Timex.today(), days: f)
+        [f, _t] -> Timex.shift(Timex.today(), days: f)
       end
 
     to =
       case args do
         [] -> Timex.today()
         [_f] -> Timex.today()
-        [_f, t] -> Timex.shift(Timex.today(), days: String.to_integer(t))
+        [_f, t] -> Timex.shift(Timex.today(), days: t)
       end
 
     Logger.info("Starting from #{from} until #{to}")

@@ -1,14 +1,12 @@
-defmodule Mix.Tasks.UpdateMarkets do
-  use Mix.Task
-
+defmodule HistoricalData.Tasks.UpdateMarkets do
   require Logger
 
   alias HistoricalData.IexMarket
   alias HistoricalData.Repo
 
-  @shortdoc "Simply runs the HistoricalData.run/0 function"
-  def run(_) do
-    Mix.Task.run("app.start")
+  def run() do
+    Application.ensure_all_started(:historical_data)
+
     {:ok, %{body: markets}} = Iexcloud.get("/stable/ref-data/market/us/exchanges")
     markets |> Enum.each(&insert_market/1)
   end
